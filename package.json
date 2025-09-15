@@ -1,0 +1,12 @@
+{
+  "name": "ai-cat-generator",
+  "version": "1.0.0",
+  "description": "AI Cat description generator using Vercel Serverless Functions and Google Vertex AI.",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {},
+  "author": "",
+  "license": "ISC"
+}
