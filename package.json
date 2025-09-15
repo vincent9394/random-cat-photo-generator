@@ -1,12 +1,14 @@
 {
-  "name": "ai-cat-generator",
+  "name": "random-cat-generator",
   "version": "1.0.0",
-  "description": "AI Cat description generator using Vercel Serverless Functions and Google Vertex AI.",
-  "main": "index.html",
+  "description": "A web app that shows random cat photos.",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "dependencies": {},
+  "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {}
 }
+

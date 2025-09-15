@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>隨機貓咪圖片產生器 (AI 版)</title>
+    <title>隨機貓咪圖片產生器</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -15,16 +15,12 @@
     <div class="bg-white rounded-lg shadow-xl p-6 md:p-8 w-11/12 max-w-lg text-center">
         
         <h1 class="text-3xl font-bold text-gray-800 mb-2">隨機貓咪產生器</h1>
-        <p class="text-gray-500 mb-6">點擊按鈕，讓 AI 為您描述一隻可愛的貓咪！</p>
+        <p class="text-gray-500 mb-6">點擊按鈕，獲取一張新的隨機貓咪圖片！</p>
 
         <div id="image-container" class="w-full h-80 bg-gray-200 rounded-lg flex items-center justify-center mb-4 overflow-hidden">
             <!-- 圖片或載入提示會顯示在這裡 -->
             <span id="loading-text" class="text-gray-500">正在等待貓咪出現...</span>
             <img id="cat-image" src="" alt="隨機貓咪" class="hidden w-full h-full object-cover">
-        </div>
-
-        <div id="description-container" class="min-h-[6rem] bg-gray-50 p-4 rounded-lg flex items-center justify-center text-gray-700 italic">
-            <p id="description-text">AI 描述將會出現在這裡...</p>
         </div>
 
         <button id="get-cat-button" class="mt-6 w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-transform transform hover:scale-105 disabled:bg-gray-400 disabled:cursor-not-allowed">
@@ -38,20 +34,18 @@
             const getCatButton = document.getElementById('get-cat-button');
             const catImage = document.getElementById('cat-image');
             const loadingText = document.getElementById('loading-text');
-            const descriptionText = document.getElementById('description-text');
 
             const fetchCatData = async () => {
                 // --- UI 狀態更新 ---
                 getCatButton.disabled = true;
-                getCatButton.textContent = 'AI 正在工作中...';
+                getCatButton.textContent = '正在獲取貓咪...';
                 catImage.classList.add('hidden');
-                loadingText.textContent = 'AI 正在召喚貓咪...';
+                loadingText.textContent = '正在召喚貓咪...';
                 loadingText.classList.remove('hidden');
-                descriptionText.textContent = 'AI 正在構思描述...';
 
                 try {
-                    // *** FIX: 呼叫新的、不會被快取的 API 端點 ***
-                    const response = await fetch('/api/cat-diagnostic');
+                    // 呼叫我們的後端 API 端點
+                    const response = await fetch('/api/cat');
                     
                     if (!response.ok) {
                         const errorData = await response.json();
@@ -64,13 +58,11 @@
                     catImage.src = data.imageUrl;
                     catImage.classList.remove('hidden');
                     loadingText.classList.add('hidden');
-                    descriptionText.textContent = `“${data.description}”`;
 
                 } catch (error) {
                     // --- 失敗後更新 UI ---
                     console.error('獲取貓咪資料時出錯:', error);
                     loadingText.textContent = '貓咪走失了！請再試一次。';
-                    descriptionText.textContent = `錯誤: ${error.message}`;
                 } finally {
                     // --- 無論成功或失敗都恢復按鈕 ---
                     getCatButton.disabled = false;
