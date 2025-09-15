@@ -3,86 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 貓咪產生器</title>
+    <title>隨機貓咪圖片產生器 (AI 版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* 增加一個簡單的載入中動畫 */
-        @keyframes pulse {
-            50% { opacity: .5; }
-        }
-        .loading-pulse {
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        body {
+            font-family: 'Inter', sans-serif;
         }
     </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 flex items-center justify-center min-h-screen font-sans p-4">
-
-    <!-- 主卡片容器 -->
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 sm:p-8 w-full max-w-lg text-center">
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white rounded-lg shadow-xl p-6 md:p-8 w-11/12 max-w-lg text-center">
         
-        <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white mb-2">AI 貓咪描述產生器</h1>
-        <p class="text-gray-600 dark:text-gray-300 mb-6">點擊按鈕，讓 AI 為您描述一隻可愛的貓咪！</p>
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">隨機貓咪產生器</h1>
+        <p class="text-gray-500 mb-6">點擊按鈕，讓 AI 為您描述一隻可愛的貓咪！</p>
 
-        <!-- 圖片顯示區域 -->
-        <div class="w-full h-64 sm:h-80 bg-gray-200 dark:bg-gray-700 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
-            <img id="catImage" src="https://placehold.co/400x300/e2e8f0/cbd5e0?text=準備中..." alt="隨機的貓咪圖片" class="w-full h-full object-cover transition-opacity duration-500">
+        <div id="image-container" class="w-full h-80 bg-gray-200 rounded-lg flex items-center justify-center mb-4 overflow-hidden">
+            <!-- 圖片或載入提示會顯示在這裡 -->
+            <span id="loading-text" class="text-gray-500">正在等待貓咪出現...</span>
+            <img id="cat-image" src="" alt="隨機貓咪" class="hidden w-full h-full object-cover">
         </div>
 
-        <!-- AI 描述區域 -->
-        <div id="description-container" class="h-20 p-2 border border-dashed dark:border-gray-600 rounded-lg flex items-center justify-center mb-6">
-            <p id="catDescription" class="text-gray-700 dark:text-gray-200 italic">AI 正在思考中...</p>
+        <div id="description-container" class="min-h-[6rem] bg-gray-50 p-4 rounded-lg flex items-center justify-center text-gray-700 italic">
+            <p id="description-text">AI 描述將會出現在這裡...</p>
         </div>
 
-        <!-- 按鈕 -->
-        <button id="newCatButton" class="w-full bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-500/50 transform hover:-translate-y-1 transition-all duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed">
-            給我一隻 AI 貓咪！
+        <button id="get-cat-button" class="mt-6 w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-transform transform hover:scale-105 disabled:bg-gray-400 disabled:cursor-not-allowed">
+            給我一隻新貓咪！
         </button>
+
     </div>
 
     <script>
-        const catImage = document.getElementById('catImage');
-        const catDescription = document.getElementById('catDescription');
-        const newCatButton = document.getElementById('newCatButton');
+        document.addEventListener('DOMContentLoaded', () => {
+            const getCatButton = document.getElementById('get-cat-button');
+            const catImage = document.getElementById('cat-image');
+            const loadingText = document.getElementById('loading-text');
+            const descriptionText = document.getElementById('description-text');
 
-        // 這個函式現在會呼叫我們自己的後端 API
-        async function fetchNewAICat() {
-            // 1. 進入載入狀態
-            newCatButton.disabled = true;
-            newCatButton.textContent = 'AI 處理中...';
-            catImage.classList.add('loading-pulse');
-            catDescription.textContent = 'AI 正在思考中...';
+            const fetchCatData = async () => {
+                // --- UI 狀態更新 ---
+                getCatButton.disabled = true;
+                getCatButton.textContent = 'AI 正在工作中...';
+                catImage.classList.add('hidden');
+                loadingText.textContent = 'AI 正在召喚貓咪...';
+                loadingText.classList.remove('hidden');
+                descriptionText.textContent = 'AI 正在構思描述...';
 
-            try {
-                // 2. 呼叫我們在 /api/cat.js 的後端函式
-                const response = await fetch('/api/cat');
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || `伺服器錯誤: ${response.status}`);
+                try {
+                    // *** FIX: 呼叫新的、不會被快取的 API 端點 ***
+                    const response = await fetch('/api/cat-diagnostic');
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.details || '後端 API 回應錯誤');
+                    }
+                    
+                    const data = await response.json();
+
+                    // --- 成功後更新 UI ---
+                    catImage.src = data.imageUrl;
+                    catImage.classList.remove('hidden');
+                    loadingText.classList.add('hidden');
+                    descriptionText.textContent = `“${data.description}”`;
+
+                } catch (error) {
+                    // --- 失敗後更新 UI ---
+                    console.error('獲取貓咪資料時出錯:', error);
+                    loadingText.textContent = '貓咪走失了！請再試一次。';
+                    descriptionText.textContent = `錯誤: ${error.message}`;
+                } finally {
+                    // --- 無論成功或失敗都恢復按鈕 ---
+                    getCatButton.disabled = false;
+                    getCatButton.textContent = '給我一隻新貓咪！';
                 }
-                
-                const data = await response.json();
-                
-                // 3. 更新圖片和描述
-                catImage.src = data.imageUrl;
-                catDescription.textContent = data.description;
+            };
 
-            } catch (error) {
-                console.error('獲取 AI 貓咪失敗:', error);
-                catDescription.textContent = `發生錯誤：${error.message}`;
-                catImage.src = 'https://placehold.co/400x300/fecaca/991b1b?text=載入失敗';
-            } finally {
-                // 4. 恢復按鈕和狀態
-                catImage.onload = () => {
-                    catImage.classList.remove('loading-pulse');
-                    newCatButton.disabled = false;
-                    newCatButton.textContent = '再給我一隻！';
-                };
-            }
-        }
-
-        newCatButton.addEventListener('click', fetchNewAICat);
-        // 頁面首次載入時自動執行
-        document.addEventListener('DOMContentLoaded', fetchNewAICat);
+            getCatButton.addEventListener('click', fetchCatData);
+            
+            // 頁面載入時自動獲取第一張圖片
+            fetchCatData();
+        });
     </script>
 </body>
 </html>
+
