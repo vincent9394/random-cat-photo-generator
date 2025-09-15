@@ -1,5 +1,5 @@
 // api/cat.js
-// 這個版本改為使用 fetch 直接呼叫 Google's REST API，只需要一個 API 金鑰。
+// 這是一個診斷版本，用來測試與基礎文字模型的連線。
 
 // --- 後端函式主體 ---
 export default async function handler(request, response) {
@@ -16,7 +16,7 @@ export default async function handler(request, response) {
     }
 
     try {
-        // --- 第一步：獲取隨機貓咪圖片 ---
+        // --- 第一步：仍然獲取貓咪圖片，因為前端需要顯示它 ---
         const catApiResponse = await fetch('https://api.thecatapi.com/v1/images/search');
         if (!catApiResponse.ok) {
             throw new Error('從 The Cat API 獲取圖片失敗');
@@ -24,25 +24,15 @@ export default async function handler(request, response) {
         const catData = await catApiResponse.json();
         const imageUrl = catData[0].url;
 
-        // --- 第二步：準備並呼叫 Vertex AI REST API ---
-        // *** FIX: Reverting to the standard 'gemini-pro-vision' model, which should now work after project setup corrections. ***
-        const GOOGLE_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${apiKey}`;
-
-        // 下載圖片並轉換為 Base64
-        const imageResponse = await fetch(imageUrl);
-        const imageBuffer = await imageResponse.arrayBuffer();
-        const imageBase64 = Buffer.from(imageBuffer).toString('base64');
+        // --- 第二步：呼叫 Google AI 的純文字模型進行診斷 ---
+        // *** 診斷步驟：使用 gemini-pro 純文字模型來測試基礎連線 ***
+        const GOOGLE_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
         
-        // 建立請求的 payload
+        // 建立一個純文字的 payload
         const payload = {
             contents: [{
                 parts: [{
-                    inline_data: {
-                        mime_type: 'image/jpeg',
-                        data: imageBase64
-                    }
-                }, {
-                    text: '用繁體中文，以一句有趣且富有想像力的短句描述這隻貓。'
+                    text: '用繁體中文，寫一個關於貓的有趣事實。'
                 }]
             }]
         };
@@ -62,14 +52,14 @@ export default async function handler(request, response) {
         }
 
         const result = await vertexAIResponse.json();
-        // 檢查 candidates 是否存在且有內容
+        
         if (!result.candidates || result.candidates.length === 0 || !result.candidates[0].content.parts[0].text) {
             console.error('Vertex AI API 回應中沒有有效的 candidates:', result);
             throw new Error('AI 未能生成描述。');
         }
         const description = result.candidates[0].content.parts[0].text;
 
-        // --- 第三步：將結果回傳給前端 ---
+        // --- 第三步：將圖片 URL 和 AI 生成的文字事實回傳給前端 ---
         response.status(200).json({
             imageUrl: imageUrl,
             description: description.trim(),
