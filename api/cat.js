@@ -25,8 +25,8 @@ export default async function handler(request, response) {
         const imageUrl = catData[0].url;
 
         // --- 第二步：準備並呼叫 Vertex AI REST API ---
-        // *** FIX: Changed API version from v1beta to v1 for stability ***
-        const GOOGLE_API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-pro-vision:generateContent?key=${apiKey}`;
+        // *** FIX: Reverting to the standard 'gemini-pro-vision' model, which should now work after project setup corrections. ***
+        const GOOGLE_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${apiKey}`;
 
         // 下載圖片並轉換為 Base64
         const imageResponse = await fetch(imageUrl);
@@ -63,7 +63,7 @@ export default async function handler(request, response) {
 
         const result = await vertexAIResponse.json();
         // 檢查 candidates 是否存在且有內容
-        if (!result.candidates || result.candidates.length === 0) {
+        if (!result.candidates || result.candidates.length === 0 || !result.candidates[0].content.parts[0].text) {
             console.error('Vertex AI API 回應中沒有有效的 candidates:', result);
             throw new Error('AI 未能生成描述。');
         }
