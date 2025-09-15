@@ -26,8 +26,8 @@ export default async function handler(request, response) {
         const imageUrl = catData[0].url;
 
         // --- 第二步：呼叫 Google AI 的純文字模型進行診斷 ---
-        // *** 診斷步驟：使用 gemini-pro 純文字模型來測試基礎連線 ***
-        const GOOGLE_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
+        // *** 最終診斷：使用具體的 gemini-1.0-pro 模型版本號 ***
+        const GOOGLE_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.0-pro:generateContent?key=${apiKey}`;
         
         // 建立一個純文字的 payload
         const payload = {
@@ -69,8 +69,8 @@ export default async function handler(request, response) {
     } catch (error) {
         console.error('後端處理錯誤:', error);
         response.status(500).json({
-            error: '處理請求時發生內部錯誤。',
-            details: error.message
+            error: '處理請求時發生內部錯誤。'
         });
     }
 }
+
