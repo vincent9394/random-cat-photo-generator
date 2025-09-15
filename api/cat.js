@@ -26,7 +26,7 @@ export default async function handler(request, response) {
 
         // --- 第二步：準備並呼叫 Vertex AI REST API ---
         // *** FIX: Changed API version from v1beta to v1 for stability ***
-        const GOOGLE_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
+        const GOOGLE_API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-pro-vision:generateContent?key=${apiKey}`;
 
         // 下載圖片並轉換為 Base64
         const imageResponse = await fetch(imageUrl);
